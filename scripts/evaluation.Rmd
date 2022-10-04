@@ -1,0 +1,156 @@
+---
+title: "Evaluate equations from CSV"
+---
+
+# Intro
+
+## Loading dependencies
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(magrittr)
+```
+
+## Loading data
+
+```{r}
+data_for_regression <- read_tsv("data_for_regression.tsv")
+
+path_to_equations <- list.files(
+  path = ".",
+  pattern = "equations(.)*\\.csv$",
+  recursive = TRUE,
+  full.names = TRUE
+) %>% set_names(.,.)
+
+equations <- path_to_equations %>%
+  map_df(read_csv, .id = "file") %>%
+  rename_with(tolower)
+```
+
+## Polyfill for Julia operators
+
+```{r}
+square <- function(x) x ** 2
+cube <- function(x) x ** 3
+log_abs <- function(x) log(abs(x))
+pow_abs <- function(x, y) abs(x) ** y
+```
+
+## Evaluating equations with data
+
+```{r}
+evaluated_data <- data_for_regression %>%
+  crossing(equations) %>%
+  rowwise() %>%
+  mutate(
+    evaluation = parse(text = equation) %>% eval,
+    sign_agrees = sign(target_regression) == sign(evaluation),
+    is_ewing = disease == "Ewing",
+    is_ewing_prediction = evaluation > 0
+  )
+```
+
+## Collecting metrics
+
+```{r}
+# I am absolutely disgusted by this
+fix_bool_for_yardstick <- function(x) factor(x, levels = c("TRUE", "FALSE"))
+
+metrics <- evaluated_data %>%
+  group_by(equation, complexity) %>%
+  mutate(
+    is_ewing = is_ewing %>% fix_bool_for_yardstick,
+    is_ewing_prediction = is_ewing_prediction %>% fix_bool_for_yardstick
+  ) %>%
+  summarise(
+    .groups = "drop",
+    
+    metric_accuracy = accuracy_vec(
+      truth = is_ewing,
+      estimate = is_ewing_prediction
+    ),
+    
+    metric_f1 = f_meas_vec(
+      truth = is_ewing,
+      estimate = is_ewing_prediction,
+      estimator = "binary",
+      event_level = "first"
+    ),
+    
+    metric_recall = recall_vec(
+      truth = is_ewing,
+      estimate = is_ewing_prediction,
+      estimator = "binary",
+      event_level = "first"
+    ),
+    
+    metric_precision = precision_vec(
+      truth = is_ewing,
+      estimate = is_ewing_prediction,
+      estimator = "binary",
+      event_level = "first"
+    ),
+    
+    metric_sensitivity = sensitivity_vec(
+      truth = is_ewing,
+      estimate = is_ewing_prediction,
+      estimator = "binary",
+      event_level = "first"
+    ),
+    
+    metric_specificity = specificity_vec(
+      truth = is_ewing,
+      estimate = is_ewing_prediction,
+      estimator = "binary",
+      event_level = "first"
+    )
+  )
+```
+
+## Finding pareto optima based on metrics
+
+```{r}
+library(rPref)
+
+best_equations <- metrics %>% psel(
+  low(complexity) *
+  high(metric_accuracy) *
+  high(metric_f1) *
+  high(metric_recall) *
+  high(metric_precision) *
+  high(metric_sensitivity) *
+  high(metric_specificity)
+)
+
+best_equations %<>% filter(if_all(starts_with("metric_"), ~ . > 0.2))
+
+best_evaluations <- semi_join(evaluated_data, best_equations)
+```
+
+# Plots
+
+```{r}
+best_evaluations %>%
+  ggplot() +
+    geom_bar(
+      mapping = aes(
+        x = factor(evaluation),
+        y = evaluation,
+        fill = disease
+      ),
+      stat = "identity"
+    ) +
+  facet_wrap(
+    equation ~ .,
+    ncol = 1,
+    scales = "free"
+  ) +
+  theme_void() +
+  theme(
+      axis.text.y = element_text(),
+      axis.ticks.y = element_line(),
+      strip.text.x = element_text(size = 16)
+  )
+```

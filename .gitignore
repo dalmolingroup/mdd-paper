@@ -21,4 +21,5 @@ slurm*
 run*
 data/*
 results/diff_exp/*
+results/
 results/ISA/

@@ -28,8 +28,14 @@ target = "phenotype_reg"
 train, test = train_test_split(
     data, test_size=0.33, stratify=data[target], random_state=random_seed
 )
+
+# %%
+
+priors = feyn.tools.estimate_priors(train, target, floor=0.1)
+
 # %%
 ql = feyn.QLattice(random_seed=random_seed)
+ql.update_priors(priors)
 
 # %%
 models = ql.auto_run(

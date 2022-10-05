@@ -3,7 +3,7 @@ import pandas as pd
 import pysr
 
 # %%
-df = pd.read_table("./data_for_regression.tsv")
+df = pd.read_table("../results/sym_reg/selected_genes_for_reg.tsv").dropna()
 
 BINARY_OPERATORS = [
     "+",
@@ -25,10 +25,11 @@ PREVENT_NESTED_UNARY_OPERATORS = {
 }
 
 UNWANTED_COLUMNS_FOR_TRAINING = [
-    "cel_file",
-    "disease",
-    "target_classification",
-    "target_regression",
+    "run",
+    "phenotype",
+    "phenotype_reg",
+    "gender",
+    "region",
 ]
 
 # %%
@@ -48,7 +49,7 @@ regression_model = pysr.PySRRegressor(
 # %%
 regression_model.fit(
     X=df[df.columns.difference(UNWANTED_COLUMNS_FOR_TRAINING)],
-    y=df["target_regression"],
+    y=df["phenotype_reg"],
 )
 
 
@@ -72,5 +73,5 @@ regression_model_with_custom_loss = pysr.PySRRegressor(
 
 regression_model_with_custom_loss.fit(
     X=df[df.columns.difference(UNWANTED_COLUMNS_FOR_TRAINING)],
-    y=df["target_regression"],
+    y=df["phenotype_reg"],
 )

@@ -26,14 +26,13 @@ full_data <- tpms %>%
     ph = ph[, 1],
     rin = rin[, 1]) %>%
   mutate(
-    phenotype_reg = ifelse(phenotype == "MDD", 1, -1),
-    gender_num = ifelse(gender == "female", 1, 0),
-    # value = 1
+    phenotype_reg = ifelse(phenotype == "MDD", 1, 0),
+    # gender_num = ifelse(gender == "female", 1, 0),
+    value = 1
   ) %>%
-  select(-c(group))
-
-  # tidyr::spread(region, value, fill = 0) %>%
-  # select(-c(group, `<NA>`))
+  # select(-c(group))
+  tidyr::spread(region, value, fill = 0) %>%
+  select(-c(group, `<NA>`))
 
 readr::write_tsv(full_data, "results/sym_reg/selected_genes_for_reg.tsv")
 

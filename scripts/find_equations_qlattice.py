@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 # %%
-data = pd.read_table("../results/sym_reg/selected_genes_for_reg.tsv")
+data = pd.read_table("../results/sym_reg/genes_for_reg.tsv")
 
 UNWANTED_COLUMNS_FOR_TRAINING = ["run", "phenotype"]
 data = data[data.columns.difference(UNWANTED_COLUMNS_FOR_TRAINING)].dropna()
@@ -48,4 +48,4 @@ best.sympify()
 best.plot_signal(train)
 
 # %%
-best.save("../results/sym_reg/qlattice_model_3_genes.json")
+best.save("../results/sym_reg/qlattice_model_all_genes.json")

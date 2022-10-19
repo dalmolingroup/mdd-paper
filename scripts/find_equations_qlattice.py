@@ -21,7 +21,7 @@ def get_train_test_types(dataset, random_seed=1024, target="phenotype_reg"):
     return train, test, stypes
 
 
-def get_best_model(
+def get_models(
     training_data, stypes, priors, target="phenotype_reg", epochs=20, random_seed=1024
 ):
 
@@ -36,15 +36,68 @@ def get_best_model(
         n_epochs=epochs,
     )
 
-    best = models[0]
-
-    return best
+    return models
 
 
 def save_model(model, train, test, filename):
     model.plot(train, test, filename=f"../results/sym_reg/{filename}_summary.html")
     model.plot_signal(train, filename=f"../results/sym_reg/{filename}_signal.svg")
     model.save(f"../results/sym_reg/{filename}_model.json")
+
+
+# From https://github.com/abzu-ai/QLattice-clinical-omics/blob/main/notebooks/functions.py
+def get_models_table(models, train, test, model_name):
+    model_list = []
+    auc_list_train = []
+    auc_list_test = []
+    bic_list = []
+    accuracy_train = []
+    accuracy_test = []
+    feat_list = []
+    function_list = []
+    loss_list = []
+    i = 0
+    for x in models:
+        model_list.append(str(i))
+        auc_list_train.append(str(x.roc_auc_score(train).round(2)))
+        auc_list_test.append(str(x.roc_auc_score(test).round(2)))
+        accuracy_train.append(str(x.accuracy_score(train).round(2)))
+        accuracy_test.append(str(x.accuracy_score(test).round(2)))
+        bic_list.append(str(x.bic.round(2)))
+        feat_list.append(len(x.features))
+        function_list.append(
+            x.sympify(symbolic_lr=False, symbolic_cat=True, include_weights=False)
+        )
+        loss_list.append(x.loss_value)
+        i += 1
+    df = pd.DataFrame(
+        list(
+            zip(
+                model_list,
+                auc_list_train,
+                auc_list_test,
+                accuracy_train,
+                accuracy_test,
+                bic_list,
+                feat_list,
+                function_list,
+                loss_list,
+            )
+        ),
+        columns=[
+            "Model",
+            "AUC Train",
+            "AUC Test",
+            "Accuracy Train",
+            "Accuracy Test",
+            "BIC",
+            "N. Features",
+            "Functional form",
+            "Loss",
+        ],
+    )
+
+    df.to_csv(f"../results/sym_reg/{model_name}_table.csv", index=False)
 
 
 def run_models():
@@ -58,11 +111,14 @@ def run_models():
     threeg_priors = feyn.tools.estimate_priors(threeg_train, "phenotype_reg", floor=0.1)
     full_priors = feyn.tools.estimate_priors(full_train, "phenotype_reg", floor=0.1)
 
-    threeg_model = get_best_model(threeg_train, threeg_types, threeg_priors)
-    full_model = get_best_model(full_train, full_types, full_priors)
+    threeg_models = get_models(threeg_train, threeg_types, threeg_priors)
+    full_models = get_models(full_train, full_types, full_priors)
 
-    save_model(threeg_model, threeg_train, threeg_test, "three_gene")
-    save_model(full_model, full_train, full_test, "all_genes")
+    get_models_table(threeg_models, threeg_train, threeg_test, "three_gene")
+    get_models_table(full_models, full_train, full_test, "all_genes")
+
+    save_model(threeg_models[0], threeg_train, threeg_test, "three_gene")
+    save_model(full_models[0], full_train, full_test, "all_genes")
 
 
 if __name__ == "__main__":

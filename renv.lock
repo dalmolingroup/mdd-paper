@@ -905,6 +905,21 @@
         "S4Vectors"
       ]
     },
+    "TreeAndLeaf": {
+      "Package": "TreeAndLeaf",
+      "Version": "1.6.1",
+      "Source": "Bioconductor",
+      "git_url": "https://git.bioconductor.org/packages/TreeAndLeaf",
+      "git_branch": "RELEASE_3_14",
+      "git_last_commit": "171d519",
+      "git_last_commit_date": "2021-10-27",
+      "Hash": "b8f10ab9082a4c3cbcc136006706ef4e",
+      "Requirements": [
+        "RedeR",
+        "ape",
+        "igraph"
+      ]
+    },
     "UpSetR": {
       "Package": "UpSetR",
       "Version": "1.4.0",
@@ -2156,12 +2171,13 @@
       "Package": "ggtree",
       "Version": "3.2.1",
       "Source": "Bioconductor",
+      "RemoteType": "bioconductor",
       "Remotes": "GuangchuangYu/treeio",
       "git_url": "https://git.bioconductor.org/packages/ggtree",
       "git_branch": "RELEASE_3_14",
       "git_last_commit": "d3747e6",
       "git_last_commit_date": "2021-11-14",
-      "Hash": "f156c85173024c88e2fdfd63ccca3fd7",
+      "Hash": "5711c057a04e53ed1c70909939dd9ad9",
       "Requirements": [
         "ape",
         "aplot",
@@ -3291,6 +3307,14 @@
         "reshape2"
       ]
     },
+    "rJava": {
+      "Package": "rJava",
+      "Version": "1.0-6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0415819f6baa75d86d52483f7292b623",
+      "Requirements": []
+    },
     "ranger": {
       "Package": "ranger",
       "Version": "0.13.1",
@@ -4236,6 +4260,27 @@
       "Repository": "CRAN",
       "Hash": "e2e5fb1a74fbb68b27d6efc5372635dc",
       "Requirements": []
+    },
+    "xlsx": {
+      "Package": "xlsx",
+      "Version": "0.6.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "d24d579f59a3b6da1e1cf4660425443e",
+      "Requirements": [
+        "rJava",
+        "xlsxjars"
+      ]
+    },
+    "xlsxjars": {
+      "Package": "xlsxjars",
+      "Version": "0.6.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "4c4b3bc29a916f33f1298dd951133351",
+      "Requirements": [
+        "rJava"
+      ]
     },
     "xml2": {
       "Package": "xml2",

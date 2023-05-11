@@ -1,0 +1,11 @@
+Model,AUC Train,AUC Test,Accuracy Train,Accuracy Test,BIC,N. Features,Functional form,Loss
+0,0.84,0.83,0.85,0.84,194.08,2,logreg(ph*exp(-gender_8cat**2 - ph**2*(gender_5cat + ph)**2)),0.389787413513148
+1,0.72,0.69,0.59,0.54,208.02,1,logreg(1/ph),0.5762802586290909
+2,0.81,0.71,0.72,0.66,209.18,4,logreg(ATAT1*(gender_cat + ph) + rin),0.5208091070874344
+3,0.79,0.77,0.71,0.71,209.44,3,logreg(ATAT1*(gender_cat + ph)),0.5362420384351566
+4,0.82,0.79,0.72,0.7,211.91,3,logreg(ATAT1*tanh(ATAT1 + gender_cat + ph)),0.513892558135775
+5,0.78,0.72,0.65,0.61,212.82,2,logreg(exp(gender_cat + 1/ph)),0.5458588621258861
+6,0.8,0.73,0.72,0.63,212.87,2,logreg(gender_cat + 1),0.5312991271386721
+7,0.76,0.7,0.69,0.57,213.21,3,logreg(rin + 1/(gender_cat + ph)),0.5469525746864506
+8,0.71,0.66,0.74,0.71,214.59,3,logreg(exp(-(DDX39B + ph)**2 - (gender_cat + ph)**2)),0.506808181978407
+9,0.78,0.77,0.71,0.72,214.62,4,logreg((ATAT1 + rin)*(gender_cat + ph)),0.536277822015934

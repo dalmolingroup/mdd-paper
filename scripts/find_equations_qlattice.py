@@ -1,3 +1,4 @@
+# %%
 import feyn
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -102,22 +103,22 @@ def get_models_table(models, train, test, model_name):
 
 def run_models():
 
-    three_gene_data = pd.read_table("../results/sym_reg/selected_genes_for_reg.tsv")
+    two_gene_data = pd.read_table("../results/sym_reg/selected_genes_for_reg.tsv")
     full_data = pd.read_table("../results/sym_reg/genes_for_reg.tsv")
 
-    threeg_train, threeg_test, threeg_types = get_train_test_types(three_gene_data)
+    twog_train, twog_test, twog_types = get_train_test_types(two_gene_data)
     full_train, full_test, full_types = get_train_test_types(full_data)
 
-    threeg_priors = feyn.tools.estimate_priors(threeg_train, "phenotype_reg", floor=0.1)
+    twog_priors = feyn.tools.estimate_priors(twog_train, "phenotype_reg", floor=0.1)
     full_priors = feyn.tools.estimate_priors(full_train, "phenotype_reg", floor=0.1)
 
-    threeg_models = get_models(threeg_train, threeg_types, threeg_priors)
+    twog_models = get_models(twog_train, twog_types, twog_priors)
     full_models = get_models(full_train, full_types, full_priors)
 
-    get_models_table(threeg_models, threeg_train, threeg_test, "three_gene")
+    get_models_table(twog_models, twog_train, twog_test, "two_gene")
     get_models_table(full_models, full_train, full_test, "all_genes")
 
-    save_model(threeg_models[0], threeg_train, threeg_test, "three_gene")
+    save_model(twog_models[0], twog_train, twog_test, "two_gene")
     save_model(full_models[0], full_train, full_test, "all_genes")
 
 

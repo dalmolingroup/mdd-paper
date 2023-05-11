@@ -16,7 +16,7 @@ imap_dfr(lrt_comp, function(x, y) {
         tibble::rownames_to_column("tx") %>% 
         mutate(tx = gsub("\\.+\\d+", "", tx),
                group = y) %>% 
-        select(tx, logFC, group)
+        dplyr::select(tx, logFC, group)
     return(df)
 }) -> logFC_tx
 
@@ -30,7 +30,7 @@ df_res_padj_tx_out_filtered <- anti_join(df_res_padj_tx, outliers_samples_dte, b
 load("results/diff_exp/edger_gene_rin_ph_diff.rda")
 df_res_padj_gene_out_filtered <- anti_join(df_edger_ph_rin_group_gene, outliers_samples_dge, by = c("gene", "group"))
 
-save(df_res_padj_gene_out_filtered, df_res_padj_tx_out_filtered, file = "df_res_dge_dte.rda")
+save(df_res_padj_gene_out_filtered, df_res_padj_tx_out_filtered, file = "results/diff_exp/df_res_dge_dte.rda")
 
 
 

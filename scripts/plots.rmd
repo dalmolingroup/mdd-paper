@@ -13,6 +13,7 @@ Load required packages:
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(patchwork)
+library(VennDiagram)
 library(UpSetR)
 library(ggnewscale)
 library(pals)
@@ -20,7 +21,7 @@ library(magrittr)
 library(ggh4x)
 library(AnnotationDbi)
 library(org.Hs.eg.db)
-library(xlsx)
+library(openxlsx)
 library(extrafont)
 library(VennDiagram)
 library(ggvenn)
@@ -151,7 +152,7 @@ df_plot %>%
 ggplot(aes(x = as.numeric(x_axis), y = n, fill = type)) +
   geom_bar(stat = "identity", position = "stack") +
   facet_grid(cols = vars(region)) + 
-  scale_y_continuous(name = "Number of transcriptionally altered genes", limits = c(0, 350), breaks = seq(0, 350, 50), minor_breaks = F) +
+  scale_y_continuous(name = "Number of transcriptionally altered genes", limits = c(0, 460), breaks = seq(0, 460, 50), minor_breaks = F) +
   #facet_zoom(x = x_axis %in% c("Female", "Male", "Intersection")) +
   scale_fill_manual(name = "", values = color_scale) +
   scale_x_continuous("",
@@ -263,8 +264,7 @@ df_plot2 <- bind_rows(tmp_1, tmp_2)
 df_plot2 %<>% 
   mutate(exclusive = factor(exclusive, 
                             levels = c("2", "3",
-                                       "4", "5",
-                                       "Exclusive")),
+                                       "4", "Exclusive")),
          sex = factor(sex, 
                       levels = c("female", "male"), labels = c("Female", "Male"))
         ) %>% 
@@ -283,9 +283,12 @@ df_plot2 %>%
   summarise(n_total = sum(n)) -> tmp_6
 
 # df_plot3 holds the number of genes in the intersection of females and males in each region
-df_plot3 <- inner_join(tmp_6, tmp_5, by = "region")
+df_plot3 <- left_join(tmp_6, tmp_5, by = "region")
 df_plot3 %<>% 
-  mutate(p_intersect = n_intersection/n_total)
+  mutate(
+    n_intersection = ifelse(is.na(n_intersection), 0, n_intersection),
+    p_intersect = n_intersection/n_total
+  )
 
 # Join exclusivity information and intersection information
 df_plot2 <- inner_join(df_plot2, df_plot3, by = c("region", "sex"))
@@ -299,10 +302,9 @@ df_plot2 <- inner_join(df_plot2, tmp7, by = "sex")
 
 # Define colors to each intersection
 cols_intersects <- c(
-  "2" = "grey80", 
-  "3" = "grey60", 
-  "4" = "grey40", 
-  "5" = "black",
+  "2" = "grey40", 
+  "3" = "grey80", 
+  "4" = "black",
   "Exclusive" = "#8a0cb1ff"
 )
 
@@ -434,7 +436,7 @@ lapply(c(
 })
 
 # Create dataframe with gwas infos
-df <- data.frame(hgnc_symbol = unique(gwas_intersections$gene_name), gwas = "gwas")
+df <- data.frame(hgnc_symbol = unique(gwas_intersections$hgnc_symbol), gwas = "gwas")
 
 # Join gwas info with intersections info
 tmp <- inner_join(genes_by_sex, diff_df, by = c("hgnc_symbol"))
@@ -484,35 +486,36 @@ ggsave("results/plots_paper/intersect_sex_by_gwas.png", width = 5, height = 4)
 load("results/important_variables/ann.rda")
 
 ann %>% 
+  rownames_to_column("run") %>% 
   dplyr::select(run, phenotype, gender, region) %>% 
   count(phenotype, gender, region, name = "number_of_samples") %>% 
   arrange(gender, region) %>% 
-  write.xlsx(file = "results/tables/number_of_samples.xlsx", row.names = F)
+  openxlsx::write.xlsx(file = "results/tables/number_of_samples.xlsx", rowNames = F)
 ```
 
 ## Supplementary Table 2
 
 ```{r}
 diff_df %>% 
-  write.xlsx(file = "results/tables/TAG.xlsx", row.names = F)
+  openxlsx::write.xlsx(file = "results/tables/TAG.xlsx", row.names = F)
 ```
 
 ## Supplementary Table 3
 
 ```{r}
 genes_by_group_female %>% 
-  write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Female_Intersections")
+  openxlsx::write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Female_Intersections")
 
 genes_by_group_male %>% 
-  write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Male_Intersections",
+  openxlsx::write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Male_Intersections",
              append = T)
 
 genes_by_sex %>% 
-  write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Sex_Intersections",
+  openxlsx::write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Sex_Intersections",
              append = T)
 
 genes_by_regions %>% 
-  write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Regions_Intersections",
+  openxlsx::write.xlsx(file = "results/tables/intersection_tables.xlsx", row.names = F, sheetName = "Regions_Intersections",
              append = T)
 
 ```
@@ -530,7 +533,7 @@ tmp %>%
   # left_join(gene_name, by = c("genes" = "ENSEMBL")) %>% 
   unique() %>% 
   write_csv("results/tables/intersect_by_type_and_gwas.csv", quote_escape = "none") %>% 
-  write.xlsx(file = "results/tables/intersect_by_type_and_gwas.xlsx", row.names = F, showNA = F)
+  openxlsx::write.xlsx(file = "results/tables/intersect_by_type_and_gwas.xlsx", row.names = F, showNA = F)
 
 overlap_list(l_group_female) %>% 
   tibble::rownames_to_column("gene") %>% 
@@ -539,7 +542,7 @@ overlap_list(l_group_female) %>%
   arrange(desc(exclusive)) %>% 
   unique() %>% 
   write_csv("results/tables/intersect_regions_by_sex_female.csv", quote_escape = "none") %>% 
-  write.xlsx(file = "results/tables/intersect_regions_by_sex_female.xlsx", row.names = F, showNA = F)
+  openxlsx::write.xlsx(file = "results/tables/intersect_regions_by_sex_female.xlsx", row.names = F, showNA = F)
 
 overlap_list(l_group_male) %>% 
   tibble::rownames_to_column("gene") %>% 
@@ -548,7 +551,7 @@ overlap_list(l_group_male) %>%
   arrange(desc(exclusive)) %>% 
   unique() %>% 
   write_csv("results/tables/intersect_regions_by_sex_male.csv", quote_escape = "none") %>% 
-  write.xlsx(file = "results/tables/intersect_regions_by_sex_male.xlsx", row.names = F, showNA = F)
+  openxlsx::write.xlsx(file = "results/tables/intersect_regions_by_sex_male.xlsx", row.names = F, showNA = F)
 
 ```
 

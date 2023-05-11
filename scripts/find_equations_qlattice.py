@@ -2,7 +2,7 @@
 import feyn
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+from feyn.filters import ContainsInputs
 
 def get_train_test_types(dataset, random_seed=1024, target="phenotype_reg"):
     UNWANTED_COLUMNS_FOR_TRAINING = ["run", "phenotype"]
@@ -118,7 +118,20 @@ def run_models():
     get_models_table(twog_models, twog_train, twog_test, "two_gene")
     get_models_table(full_models, full_train, full_test, "all_genes")
 
-    save_model(twog_models[0], twog_train, twog_test, "two_gene")
+
+    with_atat1 = ContainsInputs("ATAT1")
+    with_ddx39b = ContainsInputs("DDX39B")
+    with_both = ContainsInputs(["ATAT1", "DDX39B"])
+
+    models_atat1 = list(filter(with_atat1, twog_models))
+    models_ddx39b = list(filter(with_ddx39b, twog_models))
+    models_both = list(filter(with_both, twog_models))
+
+
+    save_model(models_atat1[0], twog_train, twog_test, "two_gene_atat1")
+    save_model(models_ddx39b[0], twog_train, twog_test, "two_gene_ddx39b")
+    if len(models_both) > 0:
+        save_model(models_both[0], twog_train, twog_test, "two_gene_both")
     save_model(full_models[0], full_train, full_test, "all_genes")
 
 

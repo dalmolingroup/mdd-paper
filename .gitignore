@@ -22,3 +22,4 @@ run*
 data/*
 results/diff_exp/*
 results/ISA/
+.venv

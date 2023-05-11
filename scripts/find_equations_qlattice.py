@@ -1,8 +1,12 @@
-# %%
+#!/usr/bin/env python
+
+# Run from the top-level directory
+
 import feyn
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from feyn.filters import ContainsInputs
+
 
 def get_train_test_types(dataset, random_seed=1024, target="phenotype_reg"):
     UNWANTED_COLUMNS_FOR_TRAINING = ["run", "phenotype"]
@@ -25,7 +29,6 @@ def get_train_test_types(dataset, random_seed=1024, target="phenotype_reg"):
 def get_models(
     training_data, stypes, priors, target="phenotype_reg", epochs=20, random_seed=1024
 ):
-
     ql = feyn.QLattice(random_seed=random_seed)
     ql.update_priors(priors)
 
@@ -41,9 +44,9 @@ def get_models(
 
 
 def save_model(model, train, test, filename):
-    model.plot(train, test, filename=f"../results/sym_reg/{filename}_summary.html")
-    model.plot_signal(train, filename=f"../results/sym_reg/{filename}_signal.svg")
-    model.save(f"../results/sym_reg/{filename}_model.json")
+    model.plot(train, test, filename=f"results/sym_reg/{filename}_summary.html")
+    model.plot_signal(train, filename=f"results/sym_reg/{filename}_signal.svg")
+    model.save(f"results/sym_reg/{filename}_model.json")
 
 
 # From https://github.com/abzu-ai/QLattice-clinical-omics/blob/main/notebooks/functions.py
@@ -98,13 +101,12 @@ def get_models_table(models, train, test, model_name):
         ],
     )
 
-    df.to_csv(f"../results/sym_reg/{model_name}_table.csv", index=False)
+    df.to_csv(f"results/sym_reg/{model_name}_table.csv", index=False)
 
 
 def run_models():
-
-    two_gene_data = pd.read_table("../results/sym_reg/selected_genes_for_reg.tsv")
-    full_data = pd.read_table("../results/sym_reg/genes_for_reg.tsv")
+    two_gene_data = pd.read_table("results/sym_reg/selected_genes_for_reg.tsv")
+    full_data = pd.read_table("results/sym_reg/genes_for_reg.tsv")
 
     twog_train, twog_test, twog_types = get_train_test_types(two_gene_data)
     full_train, full_test, full_types = get_train_test_types(full_data)
@@ -118,7 +120,6 @@ def run_models():
     get_models_table(twog_models, twog_train, twog_test, "two_gene")
     get_models_table(full_models, full_train, full_test, "all_genes")
 
-
     with_atat1 = ContainsInputs("ATAT1")
     with_ddx39b = ContainsInputs("DDX39B")
     with_both = ContainsInputs(["ATAT1", "DDX39B"])
@@ -127,7 +128,6 @@ def run_models():
     models_ddx39b = list(filter(with_ddx39b, twog_models))
     models_both = list(filter(with_both, twog_models))
 
-
     save_model(models_atat1[0], twog_train, twog_test, "two_gene_atat1")
     save_model(models_ddx39b[0], twog_train, twog_test, "two_gene_ddx39b")
     if len(models_both) > 0:
@@ -135,5 +135,40 @@ def run_models():
     save_model(full_models[0], full_train, full_test, "all_genes")
 
 
+def run_one_gene_models():
+    full_data = pd.read_table("results/sym_reg/genes_for_reg.tsv")
+    always_keep = ["run", "ph", "rin", "phenotype", "gender", "region", "phenotype_reg"]
+    genes = list(set(full_data.columns) - set(always_keep))
+
+    for gene in genes:
+        current_subset = full_data[always_keep + [gene]]
+        current_train, current_test, current_types = get_train_test_types(
+            current_subset
+        )
+
+        current_priors = feyn.tools.estimate_priors(
+            current_train, "phenotype_reg", floor=0.1
+        )
+        current_models = get_models(current_train, current_types, current_priors)
+
+        with_current_gene = ContainsInputs(gene)
+        models_current_gene = list(filter(with_current_gene, current_models))
+
+        if len(models_current_gene) > 0:
+            get_models_table(
+                current_models, current_train, current_test, f"one_gene_models/{gene}"
+            )
+            save_model(
+                models_current_gene[0],
+                current_train,
+                current_test,
+                f"one_gene_models/{gene}",
+            )
+
+
 if __name__ == "__main__":
+    print("---- Running standard models ----")
     run_models()
+    print("---- Running one-gene models ----")
+    run_one_gene_models()
+    print("Done!")

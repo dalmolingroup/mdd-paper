@@ -22,4 +22,5 @@ run*
 data/*
 results/diff_exp/*
 results/ISA/
+results/sym_reg/one_gene_models/
 .venv

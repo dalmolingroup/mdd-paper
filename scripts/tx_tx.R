@@ -11,6 +11,9 @@ load("results/important_variables/ann.rda")
 # Read files
 files <- list.files(path = "data/kallisto/", pattern="tsv", recursive = TRUE, full.names = TRUE)
 files <- files[sapply(rownames(ann), function(x) grep(x, files))]
+
+# Samples to remove 
+
 names(files) <- rownames(ann)
 txi <- tximport(files = files, type = "kallisto", txOut = T)
 

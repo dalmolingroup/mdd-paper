@@ -84,6 +84,7 @@ transform_to_df <- function(enrichment, padj_cutoff = 0.05){
 save_df <- function(enrichment, file){
   enrichment %>%
     bind_rows() %>%
+    mutate(qvalue = scales::scientific(qvalue)) %>% 
     write_csv(file=file)
 }
 

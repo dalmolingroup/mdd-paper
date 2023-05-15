@@ -75,13 +75,13 @@ addGraph(rdp, g)
 # Using REDER, we selected the best visualization for our network.
 # Nodes and edges coordinates are saved as nodes2 and edges2 in 'results/networks' directory.
 
-# Plot network layoout ----------------------------------------------------
+# Plot network layout ----------------------------------------------------
 
-# nodes <- read_tsv("results/networks/nodes2")
-# edges <- read_delim("results/networks/edges2", delim = "\t")
+nodes <- read_tsv("results/networks/model_nodes.txt")
+edges <- read_delim("results/networks/model_edges.txt")
 
-nodes <- read_tsv("~/Área de trabalho/redes/v3/nodes4")
-edges <- read_delim("~/Área de trabalho/redes/v3/edges4", delim = "\t")
+# Import nodes coordinates determined by vivagraph
+layout <- read.csv("results/networks/layout.csv")
 
 # Mark nodes as GWAS
 nodes %<>% 
@@ -90,8 +90,8 @@ nodes %<>%
 # Plot
 g <- graph_from_data_frame(edges, nodes, directed = F)
 
-V(g)$x <- nodes$x
-V(g)$y <- nodes$y
+V(g)$x <- layout[,1]
+V(g)$y <- layout[,2]
 V(g)$size <- 1
 V(g)$a <- ifelse(V(g)$alias %in% unique(diff_df$hgnc_symbol[diff_df$type == "DGE"]), 1, 0)
 V(g)$b <- ifelse(V(g)$alias %in% unique(diff_df$hgnc_symbol[diff_df$type == "DTE"]), 1, 0)
@@ -104,7 +104,7 @@ ggraph(g, x = x, y = y) +
     data = as_data_frame(g, "vertices") %>% filter(gwas == "gwas"),
     colour = NA,
     n = 5,
-    pie_scale = 1.3,
+    pie_scale = 0.5,
   show.legend = F) +
   geom_scatterpie(
     cols = c("a", "b", "c"),
@@ -113,18 +113,23 @@ ggraph(g, x = x, y = y) +
     pie_scale = 0.2,
     show.legend = F
   ) +
-  geom_node_text(aes(label = alias), size = 1.1, nudge_x = 10, nudge_y = 10) + 
+  geom_node_text(aes(label = alias), size = 1.1, nudge_x = 2, nudge_y = 4) + 
   #geom_node_label(aes(label = alias)) + 
   scale_fill_manual(values = c("#0ac80aff", "#4f4affff", "#ff822fff")) +
   coord_fixed() +
   theme_graph() -> p
 
 # Save 
-svg(filename = "results/plots_paper/rede2.svg", height = 10, width = 10)
+
+if(!dir.exists("results/plots_paper/")) {
+  dir.create("results/plots_paper")
+}
+
+svg(filename = "results/plots_paper/network.svg", height = 10, width = 10)
 print(p)
 dev.off()
 
-# Percentage of total genes in the network: 43,72%%
+# Percentage of total genes in the network: 51,52%%
 n_distinct(nodes$alias) / n_distinct(diff_df$hgnc_symbol)
 
 

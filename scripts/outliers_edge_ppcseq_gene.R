@@ -22,6 +22,8 @@ counts <- txi$counts
 
 # Identify outliers genes in each comparison group
 
+ann$run <- rownames(ann)
+
 comp <- paste(rep(unique(ann$region), each = 2), unique(ann$gender), sep = "_")
 
 map(comp, function(c) {

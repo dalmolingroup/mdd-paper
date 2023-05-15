@@ -60,10 +60,10 @@ ann_complete <- ann_complete %>%
 sum(sapply(ann_complete, function(i) sum(is.na(i)) )) == 0
 
 # Scale continuos variables
-ann_complete$age <- scale(ann_complete$age)
-ann_complete$pmi <- scale(ann_complete$pmi)
-ann_complete$rin <- scale(ann_complete$rin)
-ann_complete$ph <- scale(ann_complete$ph)
+ann_complete$age <- scale(ann_complete$age)[,1]
+ann_complete$pmi <- scale(ann_complete$pmi)[,1]
+ann_complete$rin <- scale(ann_complete$rin)[,1]
+ann_complete$ph <- scale(ann_complete$ph)[,1]
 
 # Transform categorical data
 ann_complete$gender <- as.numeric(as.factor(ann_complete$gender))

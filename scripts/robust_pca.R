@@ -9,11 +9,11 @@ library(DESeq2)
 
 # Load count table and annotation data
 load("results/txi/txi_gene.rda")
-load("results/important_variables/ann.rda")
+load("results/important_variables/ann_complete.rda")
 
 # DESeq2 object
 dds <- DESeqDataSetFromTximport(txi,
-                                colData = ann,
+                                colData = ann_complete,
                                 design = ~ group)
 
 v <- vst(dds, blind = F)
@@ -25,7 +25,7 @@ pdf("results/plots_paper/robust_pca.pdf")
 plot(pc1)
 dev.off()
 
-# The SRR5961961 sample is identified as divergent from others, and for this reason is excluded from 
+# The SRR5961961 and the SRR5961809 samples were considered outliers and removed from 
 # downstream analyses. 
 
 # plot(pc1$scores[,1], pc1$od)

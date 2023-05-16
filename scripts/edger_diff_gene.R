@@ -30,6 +30,8 @@ norm_mat <- log(norm_mat)
 y <- DGEList(counts, group = ann$group)
 y <- scaleOffset(y, norm_mat)
 
+save(y, file = "results/diff_exp/dge_list_object.rda")
+
 # Design matrix
 design <- model.matrix(~ 0 + ph + rin + group, data = ann)
 colnames(design)[3:ncol(design)] <- gsub("group", "", colnames(design)[3:ncol(design)])

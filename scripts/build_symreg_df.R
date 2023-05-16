@@ -2,17 +2,20 @@ library(dplyr)
 
 load("results/diff_exp/diff_df.rda")
 
-load("results/txi/txi_gene.rda")
+load("results/diff_exp/dge_list_object.rda")
 
 load("results/important_variables/ann.rda")
 
-get_expr_from_gene_list <- function(genelist, symbol_list) {
-  txi$abundance[rownames(txi$abundance) %in% genelist,] %>%
-    t() %>%
-    as.data.frame() %>%
-    tibble::rownames_to_column() %>%
-    setNames(., c("run", symbol_list))
-}
+get_expr_from_gene_list <-
+  function(exp_matrix, genelist, symbol_list) {
+    exp_matrix[rownames(exp_matrix) %in% genelist, ] %>%
+      t() %>%
+      as.data.frame() %>%
+      tibble::rownames_to_column() %>%
+      setNames(., c("run", symbol_list))
+  }
+
+exp <- edgeR::cpm(y)
 
 metadata <- ann %>%
   mutate(phenotype_reg = ifelse(phenotype == "MDD", 1, 0),
@@ -24,10 +27,10 @@ genes_interest <- diff_df %>%
   dplyr::select(gene, hgnc_symbol) %>%
   distinct()
 
-dge_tpms <-
-  get_expr_from_gene_list(genes_interest$gene, genes_interest$hgnc_symbol)
+dge_cpms <-
+  get_expr_from_gene_list(exp, genes_interest$gene, genes_interest$hgnc_symbol)
 
-full_data <- dge_tpms %>%
+full_data <- dge_cpms %>%
   left_join(metadata, by = "run")
 
 selected_genes <- c("ATAT1", "DDX39B")
@@ -37,13 +40,13 @@ two_genes_df <- diff_df %>%
   dplyr::select(gene, hgnc_symbol) %>%
   distinct()
 
-selected_tpms <-
-  get_expr_from_gene_list(two_genes_df$gene, selected_genes)
+selected_cpms <-
+  get_expr_from_gene_list(exp, two_genes_df$gene, selected_genes)
 
-two_gene_data <- selected_tpms %>%
+two_gene_data <- selected_cpms %>%
   left_join(metadata, by = "run")
 
-if(!dir.exists("results/sym_reg/")) {
+if (!dir.exists("results/sym_reg/")) {
   dir.create("results/sym_reg/")
 }
 

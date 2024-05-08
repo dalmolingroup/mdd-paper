@@ -12,6 +12,7 @@ efo_id <- c(
   unipolar_depression        = "EFO_0003761",
   major_depressive_disorder  = "MONDO_0002009"
 )
+
 mdd_results <- get_studies(efo_id = efo_id, set_operation = "intersection")
 
 mdd_filtered <- mdd_results@publications %>% 

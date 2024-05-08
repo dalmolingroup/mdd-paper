@@ -22,16 +22,34 @@ l_type <- lapply(split(diff_df$gene, diff_df$type), unique)
 upset(fromList(l_type), text.scale = c(1.5, 2, 1, 1.5, 2, 3), point.size = 5, nintersects = NA)
 dev.off()
 
+png("results/intersects/genes_by_type.png",  width = 20, height = 14, units = "cm", res = 300)
+l_type <- lapply(split(diff_df$gene, diff_df$type), unique)
+upset(fromList(l_type), text.scale = c(1.5, 2, 1, 1.5, 2, 3), point.size = 5, nintersects = NA)
+dev.off()
+
 # By groups in each sex 
+
+# Female
 pdf("results/intersects/genes_by_group_female.pdf", height = 7, width = 15)
 l_group_female <- lapply(split(diff_df$gene[diff_df$sex == "female"], diff_df$group[diff_df$sex == "female"]), unique)
 upset(fromList(l_group_female), nsets = length(l_group_female),  text.scale = c(1.5, 1.5, 1, 1, 2, 2), 
       point.size = 3, nintersects = NA)
 dev.off()
 
+png("results/intersects/genes_by_group_female.png",  width = 20, height = 14, units = "cm", res = 300)
+upset(fromList(l_group_female), nsets = length(l_group_female),  text.scale = c(1.5, 1.5, 1, 1, 2, 2), 
+      point.size = 3, nintersects = NA)
+dev.off()
+
+# Male
 pdf("results/intersects/genes_by_group_male.pdf", height = 7, width = 15)
 l_group_male <- lapply(split(diff_df$gene[diff_df$sex == "male"], diff_df$group[diff_df$sex == "male"]), unique)
 upset(fromList(l_group_male), nsets = length(l_group_male), text.scale = c(1.5, 1.5, 1, 1, 2, 2), 
+      point.size = 3, nintersects = NA)
+dev.off()
+
+png("results/intersects/genes_by_group_male.png",  width = 20, height = 14, units = "cm", res = 300)
+upset(fromList(l_group_male), nsets = length(l_group_male),  text.scale = c(1.5, 1.5, 1, 1, 2, 2), 
       point.size = 3, nintersects = NA)
 dev.off()
 
@@ -42,10 +60,20 @@ upset(fromList(l_regions), nsets = length(l_regions), text.scale = c(1.5, 1.5, 1
       point.size = 3, nintersects = NA)
 dev.off()
 
+png("results/intersects/genes_by_region.png",  width = 20, height = 14, units = "cm", res = 300)
+upset(fromList(l_regions), nsets = length(l_regions),  text.scale = c(1.5, 1.5, 1, 1, 2, 2), 
+      point.size = 3, nintersects = NA)
+dev.off()
+
 # By sex
 pdf("results/intersects/genes_by_sex.pdf", height = 5, width = 10)
 l_sex <- lapply(split(diff_df$gene, diff_df$sex), unique)
 upset(fromList(l_sex), nsets = length(l_sex), text.scale = c(1.5, 2, 1, 1.5, 2, 3))
+dev.off()
+
+png("results/intersects/genes_by_sex.png",  width = 20, height = 14, units = "cm", res = 300)
+upset(fromList(l_sex), nsets = length(l_sex),  text.scale = c(1.5, 1.5, 1, 1, 2, 2), 
+      point.size = 3, nintersects = NA)
 dev.off()
 
 # Get the list of genes for each intersection

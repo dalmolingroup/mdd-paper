@@ -3,13 +3,17 @@
 
 library(dplyr)
 library(purrr)
+library(gwasrapidd)
+library(biomaRt)
+library(tidyr)
 
 # Get studies related to 'major depressive disorder' and 'unipolar depression'.
 efo_id <- c(
   unipolar_depression        = "EFO_0003761",
   major_depressive_disorder  = "MONDO_0002009"
 )
-mdd_results <- gwasrapidd::get_studies(efo_id = efo_id, set_operation = "intersection") 
+
+mdd_results <- get_studies(efo_id = efo_id, set_operation = "intersection")
 
 mdd_filtered <- mdd_results@publications %>% 
   filter(publication_date > "2018-01-01")
@@ -39,7 +43,7 @@ map_dfr(studies, function(study_id) {
   assoc_2 <- associations@associations %>% 
     dplyr::select(association_id, pvalue, pvalue_description, range, beta_number, beta_direction)
 
-  associations_data <- reduce(list(assoc_1, assoc_2), inner_join, by = "association_id")
+  associations_data <- purrr::reduce(list(assoc_1, assoc_2), inner_join, by = "association_id")
   
   associations_data
 
@@ -80,3 +84,12 @@ intersection <- inner_join(risk_alleles, diff_df, by = c("ensembl_gene_name" = "
 # Save 
 save(intersection, file = "results/diff_exp/gwas_intersections.rda")
 write.csv(intersection, file = "results/tables/gwas_intersection.csv", row.names = F, quote = F)
+
+# Create Supplementary Table 
+intersection %>% 
+  separate(group, into = c("region", "sex"), sep = "_") %>% 
+  dplyr::select(sex, region, hgnc_symbol, type, variant_id, functional_class, pvalue) %>% 
+  mutate(pvalue = as.character(scales::scientific(pvalue))) %>% 
+  arrange(sex, region) %>% 
+  write.csv("results/tables/table2_gwas.csv", row.names = F, quote = F)
+  

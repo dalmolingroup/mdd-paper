@@ -5,7 +5,7 @@ library(stageR)
 library(GenomicFeatures)
 
 # Load TX data from differential expression
-load("results/diff_exp/tx_rin_ph_diff.rda")
+load("results/diff_exp/edger_tx_rin_ph_diff.rda")
 df_res <- df_edger_ph_rin_group_tx
 colnames(df_res)[1] <- "tx"
 
@@ -13,10 +13,10 @@ colnames(df_res)[1] <- "tx"
 df_res$tx <- gsub("\\.+\\d+", "", rownames(df_res))
 
 # Load transcript-gene info -----------------------------------------------
-# gtf <- "data/genome/Homo_sapiens.GRCh38.97.gtf.gz"
-# txdb.filename <- "data/genome/Homo_sapiens.GRCh38.97.gtf.sqlite"
-gtf <- "Homo_sapiens.GRCh38.97.gtf.gz"
-txdb.filename <- "Homo_sapiens.GRCh38.97.gtf.sqlite"
+gtf <- "data/genome/Homo_sapiens.GRCh38.97.gtf.gz"
+txdb.filename <- "data/genome/Homo_sapiens.GRCh38.97.gtf.sqlite"
+#gtf <- "Homo_sapiens.GRCh38.97.gtf.gz"
+#txdb.filename <- "Homo_sapiens.GRCh38.97.gtf.sqlite"
 
 # Load db
 txdb <- loadDb(txdb.filename)
@@ -72,7 +72,7 @@ for (i in 1:length(regions)) {
     
     # Get the corrected values
     padj <- getAdjustedPValues(stageRObj, order = TRUE, onlySignificantGenes = T)
-    padj <- padj[!padj$transcript == 0,]
+    # padj <- padj[!padj$transcript == 0,]
     
     if (nrow(padj) == 0) {
       ls_temp[[j]] <- NULL
@@ -93,7 +93,7 @@ if(!dir.exists("results/diff_exp/")) {
 }
 
 # Save results
-save(df_res_padj, file = "results/diff_exp/diff_tx_corrected.rda")
+save(df_res_padj_tx, file = "results/diff_exp/diff_tx_corrected.rda")
 
 
 

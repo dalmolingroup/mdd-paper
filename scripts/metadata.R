@@ -27,12 +27,16 @@ ann$rin <- scale(ann$rin)[,1]
 rownames(ann) <- ann$sample_id
 ann$sample_id <- NULL
 
+# Keep the full dataframe
+ann_full <- ann
+
 # Remove samples "SRR5961961" and "SRR5961809" that appeared as outliers on robust pca analysis
 ann <- ann %>%
   filter(!(rownames(ann) %in% c("SRR5961961", "SRR5961809")))
 
 # Save (this metadata will be used in all future models)
 save(ann, file = "results/important_variables/ann.rda")
+save(ann_full, file = "results/important_variables/ann_full.rda")
 
   
 

@@ -13,6 +13,9 @@ library(RColorBrewer)
 # Load predicted metadata
 load("results/important_variables/ann_complete.rda")
 
+ann_complete <- ann_complete %>% 
+  dplyr::rename(sex = gender)
+
 # Organize predicted metadata
 ann_regression <- ann_complete
 ann_pca <- ann_complete
@@ -23,7 +26,8 @@ lapply(seq_along(ann_pca), function(i) {
 })
 ann_pca$phenotype <- factor(ann_pca$phenotype, levels = c("1", "2"), labels = c("CTRL", "MDD"))
 ann_pca$region <- sapply(strsplit(ann_pca$group, split = "_"), "[[", 1)
-ann_pca$gender <- factor(ann_pca$gender, levels = c("1", "2"), labels = c("female", "male"))
+ann_pca$sex <- factor(ann_pca$sex, levels = c("1", "2"), labels = c("female", "male"))
+
 
 rm("ann_complete")
 
@@ -77,16 +81,16 @@ p_kallisto <- pca(assay(vds), metadata = ann_regression)
 
 df <- data.frame(PC1 = p_kallisto$rotated[,1],
                  PC2 = p_kallisto$rotated[,2],
-                 gender = ann_pca$gender,
+                 sex = ann_pca$sex,
                  group = paste(ann_pca$region, ann_pca$phenotype, sep = "_"),
                  stringsAsFactors = F)
 cols <- brewer.paired(12)
 cols[11] <- "#e0e05cf8"
 names(cols) <- unique(df$group)[order(sapply(strsplit(unique(df$group), split = "_"), "[[", 1))]
-ggplot(df, aes(x = PC1, y = PC2, col = group, shape = gender)) +
+ggplot(df, aes(x = PC1, y = PC2, col = group, shape = sex)) +
   geom_point(size = 2.5) + 
   scale_color_manual(values = cols, name = "Group") +
-  scale_shape_manual(name = "Gender", values = c(15, 17), labels = c("female" = "Female", "male" = "Male")) +
+  scale_shape_manual(name = "Sex", values = c(15, 17), labels = c("female" = "Female", "male" = "Male")) +
   labs(x = paste0("PC1", " (", round(p_kallisto$variance[1], 2), "%)"),
        y = paste0("PC2", " (", round(p_kallisto$variance[2], 2), "%)")) +
   guides(colour = guide_legend(override.aes = list(size = 3)),
@@ -95,19 +99,34 @@ ggplot(df, aes(x = PC1, y = PC2, col = group, shape = gender)) +
   theme(legend.key.size = unit(10, units = "mm"),
         legend.text = element_text(size = 12),
         legend.title = element_text(size = 12))
-ggsave("results/rank_plots/pca_vst.pdf", width = 10, height = 7)
+
+if(!dir.exists("results/rank_plots/")) {
+  dir.create("results/rank_plots/")
+}
+
+ggsave(plot = last_plot(), "results/rank_plots/pca_vst.pdf", width = 10, height = 7)
+ggsave(plot = last_plot(), "results/rank_plots/pca_vst.png", width = 10, height = 7)
 
 # Screeplot
-pdf("results/rank_plots/screeplot_pca.pdf", width = 10, height = 7)
-screeplot(p_kallisto, vline = findElbowPoint(p_kallisto$variance), components = 1:20)
-dev.off()
+sc_plot <- screeplot(p_kallisto, vline = findElbowPoint(p_kallisto$variance), components = 1:20)
+ggsave(plot = sc_plot, file = "results/rank_plots/screeplot.pdf", width = 10, height = 7)
+ggsave(plot = sc_plot, file = "results/rank_plots/screeplot.png", width = 10, height = 7)
 
 # Eigenplot - spearman correlation between variables and principal components
-pdf("results/rank_plots/eigercorplot_kallisto.pdf", width = 10, height = 7)
+pdf(file = "results/rank_plots/eigencorplot.pdf", width = 10, height = 7)
+eigencorplot(p_kallisto, corFUN = "spearman",
+                         corUSE = 'pairwise.complete.obs',
+                         metavars = c("age", "alcool", "drugs",
+                                      "ph", "medication", "sex", 
+                                      "region", "pmi", "rin", "phenotype"))
+dev.off()
+
+png(file = "results/rank_plots/eigencorplot.png", width = 20, height = 14, units = "cm", res = 300)
 eigencorplot(p_kallisto, corFUN = "spearman",
              corUSE = 'pairwise.complete.obs',
-             metavars = c("age", "alcool", "drugs", "ph", "medication", 
-                          "gender", "region", "pmi", "rin", "phenotype"))
+             metavars = c("age", "alcool", "drugs",
+                          "ph", "medication", "sex", 
+                          "region", "pmi", "rin", "phenotype"))
 dev.off()
 
 # # Poisson distance - See similarities between regions
@@ -139,7 +158,7 @@ dev.off()
 
 # Rank variables by their correlation to each components ------------------
 vars <- c("age", "alcool", "drugs", "ph", "medication", "smoking",
-          "gender", "region", "pmi", "rin", "phenotype")
+          "sex", "region", "pmi", "rin", "phenotype")
 m_cor <- matrix(0, nrow = length(vars), ncol = length(p_kallisto$rotated))
 
 # Create correlation matrix
@@ -190,4 +209,5 @@ ggplot(df_vars, aes(x = vars, y = value, fill = factor(component))) +
         axis.text.y = element_text(size = 14),
         axis.title.y = element_text(size = 14))
 ggsave("results/rank_plots/rank_vars.pdf", width = 10, height = 7)
+ggsave("results/rank_plots/rank_vars.png", width = 10, height = 7, dpi = 300)
 

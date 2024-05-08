@@ -3,6 +3,12 @@
 
 library(easylayout)
 
+# Read igraph data
+load("results/networks/int.rda")
+
+# Create graph
+g <- graph_from_edgelist(as.matrix(int[,1:2]), directed = F)
+
 # Organize main layout
 layout <- easylayout::vivagraph(g)
 

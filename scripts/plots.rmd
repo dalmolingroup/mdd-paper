@@ -47,7 +47,7 @@ diff_df %<>%
 
 # Figures in the main paper
 
-## Figure 1A
+## Figure 2A
 
 ```{r}
 # Color scale for gene type
@@ -76,9 +76,9 @@ ggsave(file = "results/plots_paper/fig1A.png", height = 4, width = 2)
 ```
 
 
-Figure 1B was produced as described at the 'network.R' in 'scripts' directory.
+Figure 2B was produced as described at the 'network.R' in 'scripts' directory.
 
-## Figure 2A
+## Figure 3A
 
 ```{r, warning=FALSE, message=FALSE}
 # Funcion to identify significant genes common to male and female groups
@@ -169,7 +169,7 @@ ggsave("results/plots_paper/fig2A.pdf", height = 3.5, width = 7)
 ggsave("results/plots_paper/fig2A.png", height = 3.5, width = 7)
 ```
 
-## Figure 2B
+## Figure 3B
 
 ```{r}
 # Create datafame to plot
@@ -193,7 +193,7 @@ draw.pairwise.venn(area1 = n_distinct(l_genes$Female),
 dev.off()
 ```
 
-## Figure 2C
+## Figure 3C
 
 ```{r}
 # Create function to count intersections
@@ -355,7 +355,7 @@ ggsave("results/plots_paper/fig2C_2.png", height = 4, width = 5, dpi = 300)
 
 ```
 
-# Figure 3
+# Figure 4 and Supplementary Figure 9
 
 ```{r}
 # Load enrichment data
@@ -372,7 +372,8 @@ df_enrich <- df_enrich %>%  mutate(
 
 # Plot
 df_enrich %>% 
-  ggplot(aes(x = fct_reorder2(Description, -p.adjust, -Count), y = GeneRatio, size = Count, col = p.adjust)) +
+  mutate(p.adjust = -log10(p.adjust)) %>%
+  ggplot(aes(x = fct_reorder2(Description, p.adjust, -Count), y = GeneRatio, size = Count, col = p.adjust)) +
   geom_point() +
   facet_grid(rows = vars(group), scales = "free_y", space = "free_y",
              labeller = as_labeller(c(
@@ -380,20 +381,43 @@ df_enrich %>%
                "OFC_female" = "OFC (female)"
              ))) +
   force_panelsizes(rows = c(0.17, 1)) +
-  scale_color_continuous(limits = c(0, 0.05), breaks = seq(0, 0.05, 0.01)) +
-  labs(x = "", y = "Gene ratio", color = "FDR", size = "Intersection") +
+  labs(x = "", y = "Gene ratio", color = expression(log[10] ~ padj), size = "Intersection") +
   coord_flip() + 
   theme_bw() +
   theme(axis.text.y = element_text(size = 9),
-        strip.text.y = element_text(size = 9))
+        strip.text.y.right = element_text(size = 9, angle = 0))
 
 ggsave(filename = "results/plots_paper/fig3.pdf", width = 9, height = 6)
 ggsave(filename = "results/plots_paper/fig3.png", width = 9, height = 6)
 ```
 
-## Figure 4
+```{r}
+enrich_allgenes <- read.csv("results/tx_enrich/go_terms_all_TAGs.csv", sep = ";")
 
-Figure 4 was produced on the biotype analysis, in the `summarise_biotypes.R` script.
+# Parse gene ratio column
+enrich_allgenes <- enrich_allgenes %>%  mutate(
+  n_tag = as.numeric(sapply(strsplit(GeneRatio, split = "\\/"), "[[", 2)),
+  GeneRatio = as.numeric(Count) / n_tag
+)
+
+enrich_allgenes %>% 
+  mutate(p.adjust = -log10(p.adjust)) %>%
+  ggplot(aes(x = fct_reorder2(Description, p.adjust, -Count), y = GeneRatio, size = Count, col = p.adjust)) +
+  geom_point() +
+  labs(x = "", y = "Gene ratio", color = expression(log[10] ~ padj), size = "Intersection") +
+  coord_flip() + 
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 9),
+        strip.text.y.right = element_text(size = 9, angle = 0))
+
+ggsave(filename = "results/plots_paper/sup_fig9.pdf", width = 9, height = 6, dpi = 300)
+ggsave(filename = "results/plots_paper/sup_fig9.png", width = 9, height = 6, dpi = 300)
+
+```
+
+## Figure 5
+
+Figure 5 was produced on the biotype analysis, in the `summarise_biotypes.R` script.
 
 
 # Supplementary Figures
@@ -406,9 +430,9 @@ Supplementary Figure 1 was plotted as described in `robust_pca.R` in `scripts` d
 
 Supplementary Figure 2 was plotted as described in `rank_variables.R` in `scripts` directory. 
 
-## Supplementary Figures 3 and 5
+## Supplementary Figures 3 and 7
 
-Supplementary Figure 3 and 5 were plotted as described in `intersection_analysis.R` in `scripts` directory. 
+Supplementary Figure 3 and 7 were plotted as described in `intersection_analysis.R` in `scripts` directory. 
 
 ##  Supplementary Figure 4
 
@@ -450,7 +474,12 @@ ggsave("results/plots_paper/percentage_gt.pdf", height = 5, width = 10, device =
 ggsave("results/plots_paper/percentage_gt.png", height = 5, width = 10, dpi = 300)
 ```
 
-# Supplementary Figure 6
+
+## Supplementary Figure 5 and 6
+
+Supplementary Figure 5 and 6 was produced as described at the 'network_sex.R' in 'scripts' directory.
+
+## Supplementary Figure 8
 
 Intersection among the different methods used (DGE, DTE and DTU).
 ```{r}
@@ -512,6 +541,9 @@ ggsave("results/plots_paper/intersect_sex_by_gwas.pdf", width = 5, height = 4)
 ggsave("results/plots_paper/intersect_sex_by_gwas.png", width = 5, height = 4)
 ```
 
+## Supplementary Figures 10 and 11
+
+The Supplementary Figures 10 and 11 were produced as described on the 'summarise_biotypes.R' in 'scripts' directory.
 
 # Supplementary Tables
 
@@ -590,5 +622,6 @@ overlap_list(l_group_male) %>%
 
 ```
 
+## Supplementary Table 4
 
-
+The supplementary Table 4 was manually produced by curating the gene expression levels on the edgeR objects. 

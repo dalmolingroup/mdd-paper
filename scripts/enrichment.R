@@ -110,6 +110,28 @@ save_df(enriched_df_diff, file = 'results/tx_enrich/go_terms.csv')
 
 save(enriched_df_diff, file = "results/tx_enrich/go_terms_tx_by_group.rda")
 
+# ENRICH ALL GENES
+
+diff_df %>% 
+    pull(gene) %>% 
+    unique() %>% 
+    bitr(fromType = "ENSEMBL",
+         toType = "ENTREZID",
+         OrgDb = "org.Hs.eg.db") -> dict
+
+res <- enrichGO(gene          = unique(dict$ENTREZID),
+                OrgDb         = org.Hs.eg.db,
+                keyType       = "ENTREZID",
+                ont           = "BP",
+                pAdjustMethod = "BH",
+                qvalueCutoff  = 0.05,
+                readable      = TRUE) # Uncomment to change ENSEMBL id to SYMBOL
+
+all_genes_enrich <- res@result %>%
+  filter(qvalue < 0.05)
+
+write.table(all_genes_enrich, file = "results/tx_enrich/go_terms_all_TAGs.csv", row.names = F, quote = F, sep = ";")
+
 # ## INTERSECTION ---------------------------------------------------------------
 # load("results/intersects/intersects.rda")
 # 

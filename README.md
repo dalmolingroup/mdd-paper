@@ -7,9 +7,9 @@ We use Miniconda (or Anaconda) for environment management (See `environment.yml`
 
 We use R version 4.1.2 and Bioconductor version 3.14.
 
-Here, we use multiple R packages. We use `renv` to track R package versions (see `renv.lock` file).
+All R packages are installed through conda. 
 
-Clone this repository to your local machine and open the project through `mdd.Rproj` to install required packages. 
+Clone this repository to your local machine and open the project through `mdd.Rproj`.
 
 ## Overall project structure
 
